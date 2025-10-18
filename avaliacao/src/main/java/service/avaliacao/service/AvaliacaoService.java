@@ -1,7 +1,7 @@
 package service.avaliacao.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,21 +15,20 @@ import service.avaliacao.model.Avaliacao;
 import service.avaliacao.repository.AvaliacaoRepository;
 import java.time.LocalDateTime;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class AvaliacaoService {
 
     private final AvaliacaoRepository avaliacaoRepository;
     private final EventClient eventClient;
-    @Transactional
 
+    @Transactional
     public AvaliacaoRespostaDto criarAvaliacao(AvaliacaoRequisicaoDto requisicaoDto, Long autorId) {
         // validação antes de criar
         Long eventoId = requisicaoDto.getEventoId();
         EventClient.EventInfo event = eventClient.getEventById(eventoId);
-        log.info("Evento do serviço de eventos: id={}, status={}, nome={}",
-                event.getId(), event.getStatus(), event.getNome());
+
         if (event == null) {
             throw new RecursoNaoEncontradoException("Evento não encontrado com ID: " + eventoId);
         }

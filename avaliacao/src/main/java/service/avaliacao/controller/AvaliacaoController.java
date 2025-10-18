@@ -18,7 +18,7 @@ public class AvaliacaoController {
 
     private final AvaliacaoService avaliacaoService;
 
-    @PostMapping("/criar-avaliacao")
+    @PostMapping("/nova-avaliacao")
     public ResponseEntity<AvaliacaoRespostaDto> criarAvaliacao(
             @Valid @RequestBody AvaliacaoRequisicaoDto requisicaoDto,
             @RequestHeader("X-User-ID") Long autorId
