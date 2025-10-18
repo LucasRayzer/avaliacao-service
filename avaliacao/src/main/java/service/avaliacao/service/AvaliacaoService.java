@@ -1,10 +1,13 @@
 package service.avaliacao.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import service.avaliacao.client.EventClient;
+import service.avaliacao.commons.StatusEvento;
 import service.avaliacao.dto.AvaliacaoRequisicaoDto;
 import service.avaliacao.dto.AvaliacaoRespostaDto;
 import service.avaliacao.exception.RecursoNaoEncontradoException;
@@ -12,19 +15,32 @@ import service.avaliacao.model.Avaliacao;
 import service.avaliacao.repository.AvaliacaoRepository;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AvaliacaoService {
 
     private final AvaliacaoRepository avaliacaoRepository;
-
+    private final EventClient eventClient;
     @Transactional
-    public AvaliacaoRespostaDto criarAvaliacao(AvaliacaoRequisicaoDto requisicaoDto, Long autorId) {
 
+    public AvaliacaoRespostaDto criarAvaliacao(AvaliacaoRequisicaoDto requisicaoDto, Long autorId) {
+        // validação antes de criar
+        Long eventoId = requisicaoDto.getEventoId();
+        EventClient.EventInfo event = eventClient.getEventById(eventoId);
+        log.info("Evento do serviço de eventos: id={}, status={}, nome={}",
+                event.getId(), event.getStatus(), event.getNome());
+        if (event == null) {
+            throw new RecursoNaoEncontradoException("Evento não encontrado com ID: " + eventoId);
+        }
+
+        if (event.getStatus() == StatusEvento.CANCELADO) {
+            throw new IllegalStateException("Não é possível avaliar um evento que foi cancelado.");
+        }
         Avaliacao avaliacao = new Avaliacao();
         avaliacao.setNota(requisicaoDto.getNota());
         avaliacao.setComentario(requisicaoDto.getComentario());
-        avaliacao.setEventoId(requisicaoDto.getEventoId());
+        avaliacao.setEventoId(eventoId);
         avaliacao.setAutorId(autorId);
         avaliacao.setDataAvaliacao(LocalDateTime.now());
 
@@ -34,8 +50,7 @@ public class AvaliacaoService {
 
     @Transactional(readOnly = true)
     public Page<AvaliacaoRespostaDto> buscarAvaliacoesPorEvento(Long eventoId, Pageable pageable) {
-        return avaliacaoRepository.findByEventoId(eventoId, pageable).map(this::paraRespostaDto);
-    }
+        return avaliacaoRepository.findByEventoId(eventoId, pageable).map(this::paraRespostaDto);    }
 
     @Transactional(readOnly = true)
     public Page<AvaliacaoRespostaDto> buscarAvaliacoesPorAutor(Long autorId, Pageable pageable) {
