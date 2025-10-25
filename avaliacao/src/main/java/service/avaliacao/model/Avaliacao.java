@@ -4,6 +4,7 @@ package service.avaliacao.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name="avaliacoes")
@@ -24,7 +25,7 @@ public class Avaliacao {
     private Long eventoId;
 
     @Column(nullable = false)
-    private Long autorId; // ID do participante que fez a avaliação
+    private UUID autorId; // ID do participante que fez a avaliação
 
     @Column(nullable = false)
     private LocalDateTime dataAvaliacao;

@@ -14,6 +14,7 @@ import service.avaliacao.service.AvaliacaoService;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,7 +32,8 @@ class AvaliacaoServiceTest {
 
     @Test
     void deveCriarAvaliacaoComSucesso() {
-        Long autorId = 1L;
+        UUID autorId = UUID.randomUUID();
+
         AvaliacaoRequisicaoDto requisicao = new AvaliacaoRequisicaoDto();
         requisicao.setNota(5);
         requisicao.setComentario("Ótimo evento!");
@@ -39,7 +41,7 @@ class AvaliacaoServiceTest {
 
         when(avaliacaoRepository.save(any(Avaliacao.class))).thenAnswer(invocation -> {
             Avaliacao avaliacaoSalva = invocation.getArgument(0);
-            avaliacaoSalva.setId(1L); // Simula a geração de ID pelo banco
+            avaliacaoSalva.setId(1L);
             return avaliacaoSalva;
         });
 
@@ -55,9 +57,8 @@ class AvaliacaoServiceTest {
 
     @Test
     void deveDeletarAvaliacaoComSucesso() {
-
         Long avaliacaoId = 1L;
-        Long autorId = 5L;
+        UUID autorId = UUID.randomUUID();
         Avaliacao avaliacaoMock = criarAvaliacaoMock(avaliacaoId, autorId);
 
         when(avaliacaoRepository.findById(avaliacaoId)).thenReturn(Optional.of(avaliacaoMock));
@@ -72,7 +73,8 @@ class AvaliacaoServiceTest {
     @Test
     void naoDeveDeletarAvaliacaoSeNaoEncontrar() {
         Long avaliacaoId = 99L;
-        Long autorId = 5L;
+        UUID autorId = UUID.randomUUID();
+
         when(avaliacaoRepository.findById(avaliacaoId)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNaoEncontradoException.class, () -> {
@@ -85,9 +87,10 @@ class AvaliacaoServiceTest {
     @Test
     void naoDeveDeletarAvaliacaoDeOutroAutor() {
         Long avaliacaoId = 1L;
-        Long autorIdCorreto = 5L;
-        Long autorIdIncorreto = 99L;
+        UUID autorIdCorreto = UUID.randomUUID();
+        UUID autorIdIncorreto = UUID.randomUUID();
         Avaliacao avaliacaoMock = criarAvaliacaoMock(avaliacaoId, autorIdCorreto);
+
 
         when(avaliacaoRepository.findById(avaliacaoId)).thenReturn(Optional.of(avaliacaoMock));
 
@@ -98,8 +101,9 @@ class AvaliacaoServiceTest {
         verify(avaliacaoRepository, never()).delete(any());
     }
 
-    // cria mocks
-    private Avaliacao criarAvaliacaoMock(Long id, Long autorId) {
+
+    private Avaliacao criarAvaliacaoMock(Long id, UUID autorId) {
+
         Avaliacao avaliacao = new Avaliacao();
         avaliacao.setId(id);
         avaliacao.setAutorId(autorId);
