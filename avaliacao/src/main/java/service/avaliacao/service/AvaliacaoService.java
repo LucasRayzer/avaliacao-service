@@ -14,6 +14,7 @@ import service.avaliacao.exception.RecursoNaoEncontradoException;
 import service.avaliacao.model.Avaliacao;
 import service.avaliacao.repository.AvaliacaoRepository;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 @Service
@@ -24,7 +25,7 @@ public class AvaliacaoService {
     private final EventClient eventClient;
 
     @Transactional
-    public AvaliacaoRespostaDto criarAvaliacao(AvaliacaoRequisicaoDto requisicaoDto, Long autorId) {
+    public AvaliacaoRespostaDto criarAvaliacao(AvaliacaoRequisicaoDto requisicaoDto, UUID autorId) {
         // validação antes de criar
         Long eventoId = requisicaoDto.getEventoId();
         EventClient.EventInfo event = eventClient.getEventById(eventoId);
@@ -52,12 +53,12 @@ public class AvaliacaoService {
         return avaliacaoRepository.findByEventoId(eventoId, pageable).map(this::paraRespostaDto);    }
 
     @Transactional(readOnly = true)
-    public Page<AvaliacaoRespostaDto> buscarAvaliacoesPorAutor(Long autorId, Pageable pageable) {
+    public Page<AvaliacaoRespostaDto> buscarAvaliacoesPorAutor(UUID autorId, Pageable pageable) {
         return avaliacaoRepository.findByAutorId(autorId, pageable).map(this::paraRespostaDto);
     }
 
     @Transactional
-    public void deletarAvaliacao(Long avaliacaoId, Long autorId) {
+    public void deletarAvaliacao(Long avaliacaoId, UUID autorId) {
         Avaliacao avaliacao = avaliacaoRepository.findById(avaliacaoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Avaliação não encontrada com ID: " + avaliacaoId));
 

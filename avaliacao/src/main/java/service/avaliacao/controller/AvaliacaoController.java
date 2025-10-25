@@ -11,6 +11,8 @@ import service.avaliacao.dto.AvaliacaoRequisicaoDto;
 import service.avaliacao.dto.AvaliacaoRespostaDto;
 import service.avaliacao.service.AvaliacaoService;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/avaliacoes")
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class AvaliacaoController {
     @PostMapping("/nova-avaliacao")
     public ResponseEntity<AvaliacaoRespostaDto> criarAvaliacao(
             @Valid @RequestBody AvaliacaoRequisicaoDto requisicaoDto,
-            @RequestHeader("X-User-ID") Long autorId
+            @RequestParam("participanteId") UUID autorId
     ) {
         AvaliacaoRespostaDto avaliacaoCriada = avaliacaoService.criarAvaliacao(requisicaoDto, autorId);
         return new ResponseEntity<>(avaliacaoCriada, HttpStatus.CREATED);
@@ -37,7 +39,7 @@ public class AvaliacaoController {
 
     @GetMapping("/minhas-avaliacoes")
     public ResponseEntity<Page<AvaliacaoRespostaDto>> buscarMinhasAvaliacoes(
-            @RequestHeader("X-User-ID") Long autorId, Pageable pageable
+            @RequestParam("participanteId") UUID autorId, Pageable pageable
     ) {
         Page<AvaliacaoRespostaDto> avaliacoes = avaliacaoService.buscarAvaliacoesPorAutor(autorId, pageable);
         return ResponseEntity.ok(avaliacoes);
@@ -46,7 +48,7 @@ public class AvaliacaoController {
     @DeleteMapping("/{avaliacaoId}")
     public ResponseEntity<Void> deletarAvaliacao(
             @PathVariable Long avaliacaoId,
-            @RequestHeader("X-User-ID") Long autorId
+            @RequestParam("participanteId") UUID autorId
     ) {
         avaliacaoService.deletarAvaliacao(avaliacaoId, autorId);
         return ResponseEntity.noContent().build();
