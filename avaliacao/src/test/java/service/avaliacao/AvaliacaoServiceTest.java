@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import service.avaliacao.client.EventClient;
 import service.avaliacao.dto.AvaliacaoRequisicaoDto;
 import service.avaliacao.exception.RecursoNaoEncontradoException;
 import service.avaliacao.model.Avaliacao;
@@ -27,6 +29,9 @@ class AvaliacaoServiceTest {
     @Mock
     private AvaliacaoRepository avaliacaoRepository;
 
+    @Mock
+    private EventClient eventClient;
+
     @InjectMocks
     private AvaliacaoService avaliacaoService;
 
@@ -36,8 +41,14 @@ class AvaliacaoServiceTest {
 
         AvaliacaoRequisicaoDto requisicao = new AvaliacaoRequisicaoDto();
         requisicao.setNota(5);
-        requisicao.setComentario("Ótimo evento!");
+        requisicao.setComentario("Ótimo evento.");
         requisicao.setEventoId(10L);
+
+        EventClient.EventInfo mockEvento = new EventClient.EventInfo();
+        mockEvento.setId(10L);
+        mockEvento.setNome("Evento de Teste");
+
+        when(eventClient.getEventById(10L)).thenReturn(mockEvento);
 
         when(avaliacaoRepository.save(any(Avaliacao.class))).thenAnswer(invocation -> {
             Avaliacao avaliacaoSalva = invocation.getArgument(0);
@@ -52,8 +63,12 @@ class AvaliacaoServiceTest {
         assertThat(resposta.getNota()).isEqualTo(5);
         assertThat(resposta.getAutorId()).isEqualTo(autorId);
         assertThat(resposta.getEventoId()).isEqualTo(10L);
+
         verify(avaliacaoRepository).save(any(Avaliacao.class));
+        verify(eventClient).getEventById(10L);
     }
+
+
 
     @Test
     void deveDeletarAvaliacaoComSucesso() {
