@@ -12,7 +12,7 @@ WORKDIR /app
 RUN useradd -r -u 10001 -g root appuser
 USER appuser
 COPY --from=build /src/target/*-SNAPSHOT.jar /app/app.jar
-EXPOSE 8083
+EXPOSE 8084
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8" \
     SPRING_PROFILES_ACTIVE="docker" \
     SERVER_PORT="8083"
