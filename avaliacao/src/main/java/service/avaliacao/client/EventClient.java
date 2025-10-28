@@ -25,17 +25,9 @@ public class EventClient {
     //busca os dados do evento
     public EventInfo getEventById(Long eventId) {
         String url = baseUrl + "/eventos/" + eventId;
-        try {
-            //Tenta buscar o objeto
-            return restTemplate.getForObject(url, EventInfo.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            //se o serviço de eventos retornar 404, retornamos null
-            return null;
-        } catch (Exception e) {
-            System.err.println("Erro ao buscar evento " + eventId + ": " + e.getMessage());
-            return null;
-        }
+        return restTemplate.getForObject(url, EventInfo.class);
     }
+
 
     /**
      * pegar os dados que vamos usar
