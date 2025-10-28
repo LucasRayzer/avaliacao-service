@@ -21,13 +21,22 @@ public class AvaliacaoController {
     private final AvaliacaoService avaliacaoService;
 
     @PostMapping("/nova-avaliacao")
-    public ResponseEntity<AvaliacaoRespostaDto> criarAvaliacao(
+    public ResponseEntity<?> criarAvaliacao(
             @Valid @RequestBody AvaliacaoRequisicaoDto requisicaoDto,
-            @RequestParam("participanteId") UUID autorId
+            @RequestHeader(value = "X-User-Id", required = false) UUID autorId,
+            @RequestHeader(value = "X-User-Roles", required = false) String rolesCsv
     ) {
+        if (autorId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+        if (!hasRole(rolesCsv, "CLIENTE")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Apenas CLIENTES podem criar avaliações.");
+        }
+
         AvaliacaoRespostaDto avaliacaoCriada = avaliacaoService.criarAvaliacao(requisicaoDto, autorId);
         return new ResponseEntity<>(avaliacaoCriada, HttpStatus.CREATED);
     }
+
 
     @GetMapping("/evento/{eventoId}")
     public ResponseEntity<Page<AvaliacaoRespostaDto>> buscarAvaliacoesPorEvento(
@@ -37,20 +46,48 @@ public class AvaliacaoController {
         return ResponseEntity.ok(avaliacoes);
     }
 
+
     @GetMapping("/minhas-avaliacoes")
-    public ResponseEntity<Page<AvaliacaoRespostaDto>> buscarMinhasAvaliacoes(
-            @RequestParam("participanteId") UUID autorId, Pageable pageable
+    public ResponseEntity<?> buscarMinhasAvaliacoes(
+            Pageable pageable,
+            @RequestHeader(value = "X-User-Id", required = false) UUID autorId,
+            @RequestHeader(value = "X-User-Roles", required = false) String rolesCsv
     ) {
+        if (autorId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+
+        if (!hasRole(rolesCsv, "CLIENTE")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Apenas CLIENTES podem ver 'minhas avaliações'.");
+        }
+
         Page<AvaliacaoRespostaDto> avaliacoes = avaliacaoService.buscarAvaliacoesPorAutor(autorId, pageable);
         return ResponseEntity.ok(avaliacoes);
     }
 
+
     @DeleteMapping("/{avaliacaoId}")
-    public ResponseEntity<Void> deletarAvaliacao(
+    public ResponseEntity<?> deletarAvaliacao(
             @PathVariable Long avaliacaoId,
-            @RequestParam("participanteId") UUID autorId
+            @RequestHeader(value = "X-User-Id", required = false) UUID autorId,
+            @RequestHeader(value = "X-User-Roles", required = false) String rolesCsv
     ) {
+        if (autorId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+        if (!hasRole(rolesCsv, "CLIENTE")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Apenas CLIENTES podem deletar avaliações.");
+        }
+
         avaliacaoService.deletarAvaliacao(avaliacaoId, autorId);
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean hasRole(String rolesCsv, String role) {
+        if (rolesCsv == null || rolesCsv.isBlank()) return false;
+        for (String r : rolesCsv.split(",")) {
+            if (role.equalsIgnoreCase(r.trim())) return true;
+        }
+        return false;
     }
 }
